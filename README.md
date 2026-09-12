@@ -9,9 +9,7 @@ servos.
 Webcam → MediaPipe Pose → Arm Joint Angles (in a CSV) → Bluetooth (SPP) → ESP32 → Servos
 ```
 
-**Demo -** https://youtube.com/shorts/Py8oe3yVqUA?feature=share
-
-(captions in English and French)
+**Demo -** https://youtube.com/shorts/Py8oe3yVqUA?feature=share <br> (captions in English and French)
 
 ## How It Works
 
