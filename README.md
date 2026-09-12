@@ -10,6 +10,7 @@ Webcam → MediaPipe Pose → Arm Joint Angles (in a CSV) → Bluetooth (SPP) �
 ```
 
 **Demo -** https://youtube.com/shorts/Py8oe3yVqUA?feature=share
+
 (captions in English and French)
 
 ## How It Works
@@ -43,7 +44,7 @@ feel there are many interesting directions I could take for new features. Here a
 
 | Version | Description |
 |---|---|
-| v1.0 | Live pose mirroring and initial hardware implementation | :white_check_mark:
+| v1.0 | Live pose mirroring and initial hardware implementation :white_check_mark: | 
 | v1.5 | Mainly hardware upgrades: new motors, battery packs, improved mounting, motion smoothing |
 | v2.0 | Implementation of computer-side audio keyword recognition as interface for a basic board-side FSM, switching states between Tracking and pre-coded Commands (e.g "Wave" or "Point x Degrees") |
 | v3.0 | Implementation of computer-side learning algorithm, observing my movements and responding live to unheard Commands |
