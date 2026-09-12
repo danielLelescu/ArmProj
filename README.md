@@ -1,15 +1,15 @@
-# Live Pose-Controlled Robotic Arm
+# Live Pose-Controlled Robotic Arm :muscle:
 
 A 2-DOF robotic arm (shoulder + elbow) that mirrors the movements of my real
 arm in real time. A webcam feed is run through MediaPipe Pose to extract arm
 joint angles, which are streamed over Bluetooth to an ESP32 that drives the
 servos.
 
-```
-Webcam → MediaPipe Pose → arm joint angles → Bluetooth (SPP) → ESP32 → servos
+``` Data Pipeline
+Webcam → MediaPipe Pose → Arm Joint Angles (in a CSV) → Bluetooth (SPP) → ESP32 → Servos
 ```
 
-## How it works
+## How It Works
 
 1. `armprocessing_BL.py` captures frames from a webcam (or a video file) and
    runs Google's MediaPipe Pose model on each one.
@@ -17,10 +17,10 @@ Webcam → MediaPipe Pose → arm joint angles → Bluetooth (SPP) → ESP32 →
    shoulders, elbows, wrists (plus the hips, used as a torso reference for
    shoulder angle).
 3. Four joint angles are computed per frame:
-   - `left_elbow_angle`, `right_elbow_angle` — **signed** angle of flexion at
+   - `left_elbow_angle`, `right_elbow_angle` - **signed** angle of flexion at
      the elbow (shoulder–elbow–wrist), so "forearm up" and "forearm down"
      are distinguishable even though both are 90° of flexion.
-   - `left_shoulder_angle`, `right_shoulder_angle` — **unsigned** angle
+   - `left_shoulder_angle`, `right_shoulder_angle` - **unsigned** angle
      between the torso line (hip→shoulder) and the upper arm
      (shoulder→elbow), i.e. how far the arm is raised.
 4. Every frame is written to a CSV for logging/analysis, and optionally the
@@ -34,16 +34,16 @@ Webcam → MediaPipe Pose → arm joint angles → Bluetooth (SPP) → ESP32 →
 physical gesture (e.g. both forearms pointing up) produces opposite-signed
 elbow angles for left vs right.
 
-## Requirements
+## Setup :computer:
 
 ```
 pip install mediapipe opencv-python numpy pyserial
 ```
 
-## Usage
+## Usage :bulb:
 
 ```bash
-python armprocessing_BL.py                          # webcam, live view
+python armprocessing_BL.py                          # default: webcam, live view
 python armprocessing_BL.py --source video.mp4       # process a video file
 python armprocessing_BL.py --source 0               # source 0 selects webcam
 python armprocessing_BL.py --output arms.csv        # custom CSV path (default: src/arm_data.csv)
@@ -51,39 +51,7 @@ python armprocessing_BL.py --full-data              # also log raw landmark x/y/
 python armprocessing_BL.py --use-3d                 # use MediaPipe's z estimate (not recommended — noisier)
 ```
 
-### Bluetooth streaming to the ESP32
-
-```bash
-python armprocessing_BL.py --bluetooth /dev/cu.FireBeetle_ArmData
-```
-
-Streams one line per processed frame over the Bluetooth SPP serial
-connection, in addition to writing the CSV exactly as without
-`--bluetooth`:
-
-```
-left_elbow,right_elbow,left_shoulder,right_shoulder\n
-```
-
-Values are plain ASCII, comma-separated, same signed/unsigned angles as the
-CSV and on-screen overlay.
-
-```bash
-python armprocessing_BL.py --list-ports
-```
-
-Lists available serial ports (including paired Bluetooth SPP devices) so
-you can find the right path for `--bluetooth`, then exits.
-
-```bash
-python armprocessing_BL.py --bluetooth /dev/cu.FireBeetle_ArmData --bt-rate 10
-```
-
-Caps Bluetooth updates to 10/sec instead of the default 20/sec, in case the
-receiving sketch is doing slow work (e.g. driving servos) per message and
-falls behind at the default rate.
-
-## Pairing the ESP32 (macOS)
+### Bluetooth streaming to the ESP32 (macOS)
 
 1. Pair the ESP32 via **System Settings > Bluetooth**. It's normal for the
    connection to only hold for a moment.
@@ -96,7 +64,26 @@ falls behind at the default rate.
    Bluetooth** and restart Settings before attempting to reconnect. The
    reconnect issue is a known bug with the FireBeetle ESP32.
 
-## Troubleshooting
+When running, one line per processed frame is streamed over the Bluetooth SPP serial
+connection, in addition to writing the CSV exactly as without `--bluetooth`.
+
+```bash
+python armprocessing_BL.py --bluetooth /dev/cu.FireBeetle_ArmData --bt-rate 10
+```
+Caps Bluetooth updates to 10/sec instead of the default 20/sec, in case the
+receiving sketch is doing slow work (e.g. driving servos) per message and
+falls behind at the default rate.
+
+## Hardware :gear:
+
+- DFRobot FireBeetle ESP32, paired over Bluetooth Classic SPP
+- 2 servos (shoulder, elbow) - (see docs/DFRobot_Servo_Datasheet.pdf)
+- GPIO 25 drives the Shoulder, GPIO 26 drives the Elbow - (see docs/DFRobot_FireBeetle_Datasheet.pdf)
+- Powering the servos: I use a 4x AA battery pack in series with a forward-biased diode
+- Powering the ESP32: I use a 3x AA battery pack
+
+
+## Troubleshooting :triangular_flag_on_post:
 
 - **Camera crash (macOS):** `ps aux | grep armprocessing`, then
   `kill -9 <PID>`.
@@ -112,15 +99,9 @@ By default, `src/arm_data.csv` contains one row per frame:
 | column | description |
 |---|---|
 | `frame` | frame index |
-| `timestamp_s` | frame index / fps |
+| `timestamp_s` | frame index/fps (seconds) |
 | `left_elbow_angle`, `right_elbow_angle` | signed elbow flexion angle (deg) |
 | `left_shoulder_angle`, `right_shoulder_angle` | unsigned shoulder elevation angle (deg) |
 
 With `--full-data`, raw `x`, `y`, `z`, `visibility` columns for each arm
 landmark (shoulders, elbows, wrists) are included as well.
-
-## Hardware
-
-- DFRobot FireBeetle ESP32, paired over Bluetooth Classic SPP
-- 2 servos (shoulder, elbow)
-- GPIO 25 drives the Shoulder, GPIO 26 drives the Elbow (see docs/DFRobot_FireBeetle_Datasheet.pdf)
